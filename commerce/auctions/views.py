@@ -7,12 +7,26 @@ from django import forms
 
 from .models import *
 
-class listing(forms.Form):
+class ListingForm(forms.Form):
     name = forms.CharField()
     image = forms.ImageField()
+    description = forms.CharField(widget=forms.Textarea(attrs={'cols':30, 'rows':3}))
+
+
+class Commenting(forms.Form):
+    comment= forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':3}))
+
 
 def index(request):
-    return render(request, "auctions/index.html")
+    listings=Listing.objects.all()
+    content = []
+    for listing in listings:
+        name = listing.name
+        image = listing.image.url
+        description = listing.description
+        listing_details={"name":name, "image":image,"description": description}
+        content.append(listing_details)
+    return render(request, "auctions/index.html", {"listings":content} )
 
 
 def login_view(request):
@@ -69,15 +83,18 @@ def register(request):
 
 def add(request):
     if request.method == "POST":
-        form = listing(request.POST,request.FILES)
+        form = ListingForm(request.POST,request.FILES)
         if form.is_valid():
             title = form.cleaned_data['name']
             picture = form.cleaned_data['image']
+            details = form.cleaned_data['description']
             try:
-                new_listing = Listing.objects.create(name=title,image=picture)
+                new_listing = Listing.objects.create(name=title,image=picture,description=details)
                 new_listing.save()
                 return HttpResponseRedirect(reverse("index"))
             except IntegrityError:
                 return render(request,"auctions/add", {"error":"Listing already exists."})
-            
-    return render(request,"auctions/add.html" , {"form": form})
+    else:        
+        form = ListingForm()
+    
+    return render(request,"auctions/add.html" , {"form": form}) 

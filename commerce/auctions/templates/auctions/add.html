@@ -1,7 +1,7 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-    <form action="{% url 'add' %}" method="post">
+    <form action="{% url 'add' %}" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <p>
                <br> <label for="{{ form.name.id_for_label }}"> Name of Object </label><br>
@@ -12,6 +12,6 @@
              <br>    <label for="{{  form.image.id_for_label }}">Image:</label><br>
             {{ form.image }}
             </p>
-            <input type="submit">
+            <input type="submit" value="Add Listing">
     </form>
 {% endblock %}
