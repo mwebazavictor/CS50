@@ -3,9 +3,13 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django import forms
 
-from .models import User
+from .models import *
 
+class listing(forms.Form):
+    name = forms.CharField()
+    image = forms.ImageField()
 
 def index(request):
     return render(request, "auctions/index.html")
@@ -61,3 +65,19 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
+
+
+def add(request):
+    if request.method == "POST":
+        form = listing(request.POST,request.FILES)
+        if form.is_valid():
+            title = form.cleaned_data['name']
+            picture = form.cleaned_data['image']
+            try:
+                new_listing = Listing.objects.create(name=title,image=picture)
+                new_listing.save()
+                return HttpResponseRedirect(reverse("index"))
+            except IntegrityError:
+                return render(request,"auctions/add", {"error":"Listing already exists."})
+            
+    return render(request,"auctions/add.html" , {"form": form})
