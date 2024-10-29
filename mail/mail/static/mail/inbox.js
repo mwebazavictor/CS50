@@ -34,6 +34,7 @@ function compose_email(reply,recipients = '',subject = '',body = '',timestamp) {
 
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#read-email-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
   
   if(reply === true && !subject.startsWith('RE: ')){
@@ -79,11 +80,24 @@ function load_mailbox(mailbox) {
         const subject = email.subject;
         const timestamp =email.timestamp;
         const id = email.id;
-        element.innerHTML=`        
-        TO: ${recipients.map(recipient => recipient ).join(', ')}
-        <br>ON: ${timestamp}
-        <br><h4>SUBJECT: ${subject}</h4><hr>
-        `;
+        
+        element.innerHTML=`<div><strong>${recipients.map(recipient => recipient ).join(', ')}</strong>&nbsp;&nbsp;${subject}</div>   <span class="timestamp"> ${timestamp}</span> `;
+
+
+        element.style.display = 'flex';
+        element.style.justifyContent = 'space-between';
+        element.style.alignItems = 'center';
+        element.style.borderStyle = 'solid';
+        element.style.borderWidth = '1px';
+        const PaddingStyling = ['paddingLeft', 'paddingBottom','paddingTop', 'paddingRight'];
+        const Component = ['5px','8px','8px','5px'];
+        PaddingStyling.forEach((paddingStyle, index) => {
+          element.style[paddingStyle] = Component[index];
+        })
+        
+
+        const TimestampSpan = element.querySelector('.timestamp');
+        TimestampSpan.style.color ='grey';
         document.querySelector('#emails-view').append(element);
         element.addEventListener('click', () => load_mail(id, mailbox));
       });
@@ -108,16 +122,29 @@ function load_mailbox(mailbox) {
         
         
         //List Emails
-        element.innerHTML=`FROM : <strong>${sender}</strong>     ON : ${timestamp} <br><h3>${subject}</h3><hr>`;
-        if(SelectedEmails.includes(id)){
+        element.style.display = 'flex';
+        element.style.justifyContent = 'space-between';
+        element.style.alignItems = 'center';
+        element.style.borderStyle = 'solid';
+        element.style.borderWidth = '1px';
+        const PaddingStyling = ['paddingLeft', 'paddingBottom','paddingTop', 'paddingRight'];
+        const Component = ['5px','8px','8px','5px'];
+        PaddingStyling.forEach((paddingStyle, index) => {
+          element.style[paddingStyle] = Component[index];
+        })
+        element.innerHTML=`<div><strong>&nbsp;${sender}</strong>&nbsp;&nbsp;${subject}</div>   <span class="timestamp"> ${timestamp}</span> `;
+        if(SelectedEmails.includes(id) || mailbox == 'archive'){
           element.style.backgroundColor = 'grey';
         }
+        const TimestampSpan = element.querySelector('.timestamp');
+        TimestampSpan.style.color ='grey';
         document.querySelector('#emails-view').append(element);
         
+
         //Once Emails clicked
         
           element.addEventListener('click', () => {
-            if (mailbox == 'inbox'){
+            if (['inbox','archive'].includes(mailbox)){
               if (!SelectedEmails.includes(id)){
                 SelectedEmails.push(id);
               }
@@ -156,15 +183,17 @@ function load_mail(mail_id, mailbox){
     const content = document.createElement('div');
     const ReadEmailView = document.querySelector('#read-email-view');
     const ReplyButton = document.createElement('button');
+    const ButtonDiv = document.createElement('div');
+    
     description.innerHTML = `
-    <h2>${subject}</h2>
-    <br><strong>TO : ${recipients.map(recipient => recipient).join(', ')}</strong>                 
-    <br> FROM : ${sender}
-    ON : ${timestamp}
+    <strong>From:</strong> ${sender}
+    <br><strong>To:</strong> ${recipients.map(recipient => recipient).join(', ')}
+    <br><strong>Subject: </strong>${subject}
+    <br><strong>Timestamp: </strong> ${timestamp}
     `;
-    content.innerHTML = `<h4><p>${body}</p></h4>`;
-    ReadEmailView.innerHTML = '';
-    ReadEmailView.append(description, content);
+    content.innerHTML = `<p>${body}</p>`;
+    
+    
      
     
     // Archive Button
@@ -173,6 +202,7 @@ function load_mail(mail_id, mailbox){
       const ArchiveButton = document.createElement('button');
       ArchiveButton.className = 'btn btn-sm btn-outline-primary';
       ArchiveButton.innerHTML = email.archived ? "Unarchive" : "Archive";
+      
       ArchiveButton.addEventListener('click', () => {
         fetch(`emails/${mail_id}`, {
           method: 'PUT',
@@ -182,14 +212,22 @@ function load_mail(mail_id, mailbox){
         })
         .then(() => load_mailbox('inbox')); 
       });
-      ReadEmailView.append(ArchiveButton);
+      ButtonDiv.appendChild(ArchiveButton);
     }
     }
     // Reply button
     ReplyButton.className = 'btn btn-sm btn-outline-primary';
     ReplyButton.innerHTML = 'Reply';
     ReplyButton.addEventListener('click', () => compose_email(true,sender,subject,body,timestamp));
-    ReadEmailView.append(ReplyButton);
+    ButtonDiv.appendChild(ReplyButton);
+    
+    
+   
+    description.appendChild(ButtonDiv);
+    description.append(document.createElement('hr'));
+    ReadEmailView.innerHTML = '';
+    ReadEmailView.appendChild(description);
+    ReadEmailView.appendChild(content);
   });
   
 }
