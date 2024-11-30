@@ -1,14 +1,33 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect,JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django import forms
 
-from .models import User
 
+from .models import User, Post
+
+class PostingForm(forms.Form):
+    post= forms.CharField(widget=forms.Textarea(attrs={
+        "class" : "new_post"
+    }))
+
+def posts_collection():
+    
+    return list(Post.objects.values('content', 'user', 'date'))
+
+def api_view(request):
+    Posts = posts_collection()
+    return JsonResponse(Posts, safe=False)
 
 def index(request):
-    return render(request, "network/index.html")
+    if request.method == "POST":
+        ... 
+    form = PostingForm()
+    Posts = posts_collection()
+    
+    return render(request, "network/index.html",{"form":form,"posts":Posts})
 
 
 def login_view(request):

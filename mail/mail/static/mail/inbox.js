@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // By default, load the inbox
   load_mailbox('inbox');
+
   // Sending an Email
   document.querySelector('#compose-form').onsubmit= () => {
     fetch('/emails', {
@@ -28,10 +29,11 @@ document.addEventListener('DOMContentLoaded', function() {
     return false;
   };
 });
-  
+
+let CurrentView = "";
 
 function compose_email(reply,recipients = '',subject = '',body = '',timestamp) {
-
+  CurrentView = 'compose';
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#read-email-view').style.display = 'none';
@@ -69,8 +71,10 @@ function load_mailbox(mailbox) {
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
+  document.querySelector('#read-email-view').innerHTML='';
  // When the sent mailbox is required
   if (mailbox =='sent'){
+    CurrentView = "sent";
     fetch('/emails/sent')
     .then(response => response.json())
     .then(emails => {
@@ -104,6 +108,7 @@ function load_mailbox(mailbox) {
     })
   } 
   else {
+    CurrentView = "Other Mailboxes"
     fetch(`/emails/${mailbox}`)
     .then(response => response.json())
     .then(emails => {
@@ -133,13 +138,15 @@ function load_mailbox(mailbox) {
           element.style[paddingStyle] = Component[index];
         })
         element.innerHTML=`<div><strong>&nbsp;${sender}</strong>&nbsp;&nbsp;${subject}</div>   <span class="timestamp"> ${timestamp}</span> `;
+        const TimestampSpan = element.querySelector('.timestamp');
         if(SelectedEmails.includes(id) || mailbox == 'archive'){
           element.style.backgroundColor = 'grey';
+          TimestampSpan.style.color = '#ffffff';
         }
-        const TimestampSpan = element.querySelector('.timestamp');
-        TimestampSpan.style.color ='grey';
+        else {
+          TimestampSpan.style.color ='grey';
+          }
         document.querySelector('#emails-view').append(element);
-        
 
         //Once Emails clicked
         
@@ -170,7 +177,7 @@ function load_mail(mail_id, mailbox){
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'none';
   document.querySelector('#read-email-view').style.display ='block';
-
+  
   fetch(`/emails/${mail_id}`)
   .then(response => response.json())
   .then(email => {

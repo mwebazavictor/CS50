@@ -1,5 +1,13 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
-    TODO
+    <form action="{% url 'index' %}" method="post">
+        {% csrf_token %}
+       <strong> <label for = "new_post">New Post</label> </strong> 
+        {{ form.post }}
+        <input type="submit">
+        <div id = "posts">
+
+        </div>
+    </form>
 {% endblock %}
