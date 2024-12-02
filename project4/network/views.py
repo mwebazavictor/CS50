@@ -4,9 +4,11 @@ from django.http import HttpResponse, HttpResponseRedirect,JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django import forms
+from django.db.models import F, Count
+from django.db.models.expressions import RawSQL
 
 
-from .models import User, Post
+from .models import *
 
 class PostingForm(forms.Form):
     post= forms.CharField(widget=forms.Textarea(attrs={
@@ -14,8 +16,10 @@ class PostingForm(forms.Form):
     }))
 
 def posts_collection():
-    
-    return list(Post.objects.values('content', 'user', 'date'))
+    original_date = """ 
+    DATE_FORMAT('%Y-%m-%d, %I:%M %p', date) 
+    """
+    return list(Post.objects.annotate(number_of_likes = Count("likes")).annotate(poster = F("user__username")).annotate(usable_date=RawSQL(original_date, [])).values('content', 'poster', 'usable_date','number_of_likes'))
 
 def api_view(request):
     Posts = posts_collection()

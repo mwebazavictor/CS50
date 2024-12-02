@@ -3,9 +3,13 @@
 {% block body %}
     <form action="{% url 'index' %}" method="post">
         {% csrf_token %}
+        <div class="form">
        <strong> <label for = "new_post">New Post</label> </strong> 
-        {{ form.post }}
+       <div class="form_textbox"> 
+       {{ form.post }}   
         <input type="submit">
+        </div>
+        </div>
         <div id = "posts">
 
         </div>
